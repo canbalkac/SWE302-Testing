@@ -18,8 +18,12 @@ class HotelReservationGUI:
         tk.Button(self.main_frame, text="View Customers", command=self.view_customers).grid(row=0, column=1, padx=10)
         tk.Button(self.main_frame, text="Add Hotel", command=self.add_hotel).grid(row=1, column=0, padx=10)
         tk.Button(self.main_frame, text="Add Customer", command=self.add_customer).grid(row=1, column=1, padx=10)
-        tk.Button(self.main_frame, text="Make Reservation", command=self.make_reservation).grid(row=2, column=0, padx=10)
-        tk.Button(self.main_frame, text="Cancel Reservation", command=self.cancel_reservation).grid(row=2, column=1, padx=10)
+        tk.Button(self.main_frame, text="Modify Hotel", command=self.modify_hotel).grid(row=2, column=0, padx=10)
+        tk.Button(self.main_frame, text="Modify Customer", command=self.modify_customer).grid(row=2, column=1, padx=10)
+        tk.Button(self.main_frame, text="Delete Hotel", command=self.delete_hotel).grid(row=3, column=0, padx=10)
+        tk.Button(self.main_frame, text="Delete Customer", command=self.delete_customer).grid(row=3, column=1, padx=10)
+        tk.Button(self.main_frame, text="Make Reservation", command=self.make_reservation).grid(row=4, column=0, padx=10)
+        tk.Button(self.main_frame, text="Cancel Reservation", command=self.cancel_reservation).grid(row=4, column=1, padx=10)
 
         # Output Area
         self.output_text = tk.Text(self.root, wrap=tk.WORD, width=80, height=20)
@@ -103,7 +107,7 @@ class HotelReservationGUI:
             return
         a.create_hotel(name, rooms)
         messagebox.showinfo("Success", f"Hotel '{name}' added with {rooms} rooms!")
-    
+
     def add_customer(self):
         """Add a new customer."""
         name = simpledialog.askstring("Add Customer", "Enter customer name:")
@@ -111,6 +115,140 @@ class HotelReservationGUI:
             return
         a.create_customer(name)
         messagebox.showinfo("Success", f"Customer '{name}' added!")
+
+    def modify_hotel(self):
+        """Modify hotel attributes like name or room count."""
+        hotels = self.get_all_hotels()
+        if not hotels:
+            messagebox.showwarning("Error", "No hotels available!")
+            return
+
+        modify_window = tk.Toplevel(self.root)
+        modify_window.title("Modify Hotel")
+
+        tk.Label(modify_window, text="Select Hotel:").pack(pady=10)
+        hotel_var = tk.StringVar()
+        hotel_dropdown = ttk.Combobox(modify_window, textvariable=hotel_var)
+        hotel_dropdown['values'] = hotels
+        hotel_dropdown.pack(pady=10)
+
+        tk.Label(modify_window, text="New Hotel Name:").pack(pady=10)
+        new_name_var = tk.StringVar()
+        new_name_entry = tk.Entry(modify_window, textvariable=new_name_var)
+        new_name_entry.pack(pady=10)
+
+        tk.Label(modify_window, text="New Room Count:").pack(pady=10)
+        new_room_var = tk.IntVar()
+        new_room_entry = tk.Entry(modify_window, textvariable=new_room_var)
+        new_room_entry.pack(pady=10)
+
+        def confirm_modification():
+            selected_hotel = hotel_var.get()
+            new_name = new_name_var.get()
+            new_rooms = new_room_var.get()
+
+            if not selected_hotel or not new_name or not new_rooms:
+                messagebox.showerror("Error", "Please fill all fields!")
+                return
+
+            a.modify_hotel(selected_hotel, new_rooms)
+            if selected_hotel != new_name:
+                os.rename(f"{selected_hotel}.hotel", f"{new_name}.hotel")
+            messagebox.showinfo("Success", f"Hotel '{selected_hotel}' modified!")
+            modify_window.destroy()
+
+        tk.Button(modify_window, text="Confirm Modification", command=confirm_modification).pack(pady=20)
+
+    def modify_customer(self):
+        """Modify customer name."""
+        customers = self.get_all_customers()
+        if not customers:
+            messagebox.showwarning("Error", "No customers available!")
+            return
+
+        modify_window = tk.Toplevel(self.root)
+        modify_window.title("Modify Customer")
+
+        tk.Label(modify_window, text="Select Customer:").pack(pady=10)
+        customer_var = tk.StringVar()
+        customer_dropdown = ttk.Combobox(modify_window, textvariable=customer_var)
+        customer_dropdown['values'] = customers
+        customer_dropdown.pack(pady=10)
+
+        tk.Label(modify_window, text="New Customer Name:").pack(pady=10)
+        new_name_var = tk.StringVar()
+        new_name_entry = tk.Entry(modify_window, textvariable=new_name_var)
+        new_name_entry.pack(pady=10)
+
+        def confirm_modification():
+            selected_customer = customer_var.get()
+            new_name = new_name_var.get()
+
+            if not selected_customer or not new_name:
+                messagebox.showerror("Error", "Please fill all fields!")
+                return
+
+            a.modify_customer(selected_customer, new_name)
+            messagebox.showinfo("Success", f"Customer '{selected_customer}' renamed to '{new_name}'!")
+            modify_window.destroy()
+
+        tk.Button(modify_window, text="Confirm Modification", command=confirm_modification).pack(pady=20)
+
+    def delete_hotel(self):
+        """Delete a hotel."""
+        hotels = self.get_all_hotels()
+        if not hotels:
+            messagebox.showwarning("Error", "No hotels available!")
+            return
+
+        delete_window = tk.Toplevel(self.root)
+        delete_window.title("Delete Hotel")
+
+        tk.Label(delete_window, text="Select Hotel to Delete:").pack(pady=10)
+        hotel_var = tk.StringVar()
+        hotel_dropdown = ttk.Combobox(delete_window, textvariable=hotel_var)
+        hotel_dropdown['values'] = hotels
+        hotel_dropdown.pack(pady=10)
+
+        def confirm_deletion():
+            selected_hotel = hotel_var.get()
+            if not selected_hotel:
+                messagebox.showerror("Error", "Please select a hotel to delete.")
+                return
+
+            a.delete_hotel(selected_hotel)
+            messagebox.showinfo("Success", f"Hotel '{selected_hotel}' deleted!")
+            delete_window.destroy()
+
+        tk.Button(delete_window, text="Confirm Deletion", command=confirm_deletion).pack(pady=20)
+
+    def delete_customer(self):
+        """Delete a customer."""
+        customers = self.get_all_customers()
+        if not customers:
+            messagebox.showwarning("Error", "No customers available!")
+            return
+
+        delete_window = tk.Toplevel(self.root)
+        delete_window.title("Delete Customer")
+
+        tk.Label(delete_window, text="Select Customer to Delete:").pack(pady=10)
+        customer_var = tk.StringVar()
+        customer_dropdown = ttk.Combobox(delete_window, textvariable=customer_var)
+        customer_dropdown['values'] = customers
+        customer_dropdown.pack(pady=10)
+
+        def confirm_deletion():
+            selected_customer = customer_var.get()
+            if not selected_customer:
+                messagebox.showerror("Error", "Please select a customer to delete.")
+                return
+
+            a.delete_customer(selected_customer)
+            messagebox.showinfo("Success", f"Customer '{selected_customer}' deleted!")
+            delete_window.destroy()
+
+        tk.Button(delete_window, text="Confirm Deletion", command=confirm_deletion).pack(pady=20)
 
     def make_reservation(self):
         """Make a reservation."""
@@ -143,8 +281,9 @@ class HotelReservationGUI:
             customer_name = customer_var.get()
             hotel_name = hotel_var.get()
             if not customer_name or not hotel_name:
-                messagebox.showwarning("Error", "Please select both a customer and a hotel.")
+                messagebox.showerror("Error", "Please select both a customer and a hotel.")
                 return
+
             a.create_reservation(customer_name, hotel_name)
             messagebox.showinfo("Success", f"Reservation made for '{customer_name}' at '{hotel_name}'!")
             reservation_window.destroy()
@@ -184,8 +323,9 @@ class HotelReservationGUI:
             customer_name = customer_var.get()
             hotel_name = hotel_var.get()
             if not customer_name or not hotel_name:
-                messagebox.showwarning("Error", "Please select both a customer and a hotel.")
+                messagebox.showerror("Error", "Please select both a customer and a hotel.")
                 return
+
             a.cancel_reservation(customer_name, hotel_name)
             messagebox.showinfo("Success", f"Reservation for '{customer_name}' at '{hotel_name}' canceled!")
             cancel_window.destroy()
