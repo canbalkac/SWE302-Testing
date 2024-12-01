@@ -1,52 +1,9 @@
-"""
-This module provides a simple hotel reservation system.
-
-It includes two main classes: Hotel and Customer. The Hotel class represents a
-hotel with a certain number of rooms and a list of reservations. The Customer
-class represents a customer with a name.
-
-The module also provides several functions to interact with hotels and
-customers, including creating, deleting, displaying, and modifying hotels and
-customers, as well as creating and cancelling reservations.
-
-The data for hotels and customers is stored in JSON format in separate files
-for each hotel and customer. The filename for a hotel or customer is its name
-with the extension '.hotel' or '.customer', respectively.
-"""
 import json
 import os
 import locale
 
 
 class Hotel:
-    """
-    A class used to represent a Hotel.
-
-    ...
-
-    Attributes
-    ----------
-    name : str
-        the name of the hotel
-    rooms : int
-        the number of rooms in the hotel
-    reservations : list
-        the list of reservations in the hotel
-
-    Methods
-    -------
-    reserve_room(customer)
-        Reserves a room for a customer
-    cancel_reservation(customer)
-        Cancels a reservation for a customer
-    update_reservation(old_name, new_name)
-        Updates a reservation with a new customer name
-    to_json()
-        Returns a JSON string representation of the hotel
-    from_json(json_str)
-        Returns a Hotel object from a JSON string representation
-    """
-
     def __init__(self, name, rooms):
         """Initializes Hotel with a name and number of rooms."""
         self.name = name
@@ -91,24 +48,6 @@ class Hotel:
 
 
 class Customer:
-    """
-    A class used to represent a Customer.
-
-    ...
-
-    Attributes
-    ----------
-    name : str
-        the name of the customer
-
-    Methods
-    -------
-    to_json()
-        Returns a JSON string representation of the customer
-    from_json(json_str)
-        Returns a Customer object from a JSON string representation
-    """
-
     def __init__(self, name):
         """Initializes Customer with a name."""
         self.name = name

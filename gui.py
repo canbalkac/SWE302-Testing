@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog, ttk
+from tkinter import messagebox, ttk, simpledialog
 import abstractions as a
 import os
 
@@ -32,6 +32,38 @@ class HotelReservationGUI:
     def get_all_customers(self):
         """Retrieve all customer names from the system."""
         return [f[:-9] for f in os.listdir() if f.endswith('.customer')]
+
+    def get_hotels_with_available_rooms(self):
+        """Retrieve hotels that have available rooms."""
+        hotels = []
+        for hotel_name in self.get_all_hotels():
+            hotel = a.load_from_file(a.Hotel, f"{hotel_name}.hotel")
+            if hotel.rooms > 0:
+                hotels.append(hotel_name)
+        return hotels
+
+    def get_customers_without_reservation(self):
+        """Retrieve customers who do not have a reservation."""
+        customers = []
+        for customer_name in self.get_all_customers():
+            reserved = False
+            for hotel_name in self.get_all_hotels():
+                hotel = a.load_from_file(a.Hotel, f"{hotel_name}.hotel")
+                if customer_name in hotel.reservations:
+                    reserved = True
+                    break
+            if not reserved:
+                customers.append(customer_name)
+        return customers
+
+    def get_hotels_with_reservations(self, customer_name):
+        """Retrieve hotels where a specific customer has a reservation."""
+        hotels = []
+        for hotel_name in self.get_all_hotels():
+            hotel = a.load_from_file(a.Hotel, f"{hotel_name}.hotel")
+            if customer_name in hotel.reservations:
+                hotels.append(hotel_name)
+        return hotels
 
     def view_hotels(self):
         """Display all hotels."""
@@ -71,7 +103,7 @@ class HotelReservationGUI:
             return
         a.create_hotel(name, rooms)
         messagebox.showinfo("Success", f"Hotel '{name}' added with {rooms} rooms!")
-
+    
     def add_customer(self):
         """Add a new customer."""
         name = simpledialog.askstring("Add Customer", "Enter customer name:")
@@ -82,14 +114,14 @@ class HotelReservationGUI:
 
     def make_reservation(self):
         """Make a reservation."""
-        customer_names = self.get_all_customers()
+        customer_names = self.get_customers_without_reservation()
         if not customer_names:
-            messagebox.showwarning("Error", "No customers available!")
+            messagebox.showwarning("Error", "All customers already have reservations!")
             return
 
-        hotel_names = self.get_all_hotels()
+        hotel_names = self.get_hotels_with_available_rooms()
         if not hotel_names:
-            messagebox.showwarning("Error", "No hotels available!")
+            messagebox.showwarning("Error", "No hotels with available rooms!")
             return
 
         reservation_window = tk.Toplevel(self.root)
@@ -126,11 +158,6 @@ class HotelReservationGUI:
             messagebox.showwarning("Error", "No customers available!")
             return
 
-        hotel_names = self.get_all_hotels()
-        if not hotel_names:
-            messagebox.showwarning("Error", "No hotels available!")
-            return
-
         cancel_window = tk.Toplevel(self.root)
         cancel_window.title("Cancel Reservation")
 
@@ -140,10 +167,17 @@ class HotelReservationGUI:
         customer_dropdown['values'] = customer_names
         customer_dropdown.pack(pady=10)
 
+        def update_hotels(*args):
+            selected_customer = customer_var.get()
+            if selected_customer:
+                hotels = self.get_hotels_with_reservations(selected_customer)
+                hotel_dropdown['values'] = hotels
+
+        customer_var.trace('w', update_hotels)
+
         tk.Label(cancel_window, text="Select Hotel:").pack(pady=10)
         hotel_var = tk.StringVar()
         hotel_dropdown = ttk.Combobox(cancel_window, textvariable=hotel_var)
-        hotel_dropdown['values'] = hotel_names
         hotel_dropdown.pack(pady=10)
 
         def confirm_cancellation():
